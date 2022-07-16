@@ -19,15 +19,15 @@ class SpaceShip extends Actor {
   }
 
   movements = [
-    [Input.Keys.Up, Vector.Up],
-    [Input.Keys.Down, Vector.Down],
-    [Input.Keys.Left, Vector.Left],
-    [Input.Keys.Right, Vector.Right],
+    [[Input.Keys.Up, Input.Keys.W], Vector.Up],
+    [[Input.Keys.Down, Input.Keys.S], Vector.Down],
+    [[Input.Keys.Left, Input.Keys.A], Vector.Left],
+    [[Input.Keys.Right, Input.Keys.D], Vector.Right],
   ] as const;
 
   public update(_engine: Engine, delta: number): void {
-    this.movements.forEach(([key, vector]) => {
-      if (game.input.keyboard.isHeld(key)) {
+    this.movements.forEach(([keys, vector]) => {
+      if (keys.some((key) => game.input.keyboard.isHeld(key))) {
         this.pos = this.pos.add(vector.scale(delta * 0.1));
       }
     });
