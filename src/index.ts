@@ -1,4 +1,5 @@
 import { Actor, CollisionType, Color, Engine, Input, Vector } from "excalibur";
+import { Keys } from "excalibur/build/dist/Input/Keyboard";
 
 const game = new Engine({
   width: 800,
@@ -26,11 +27,13 @@ class SpaceShip extends Actor {
   ] as const;
 
   public update(_engine: Engine, delta: number): void {
+    const changeInPosition = new Vector(0, 0);
     this.movements.forEach(([keys, vector]) => {
-      if (keys.some((key) => game.input.keyboard.isHeld(key))) {
-        this.pos = this.pos.add(vector.scale(delta * 0.1));
+      if (keys.some((key: Keys) => game.input.keyboard.isHeld(key))) {
+        changeInPosition.addEqual(vector)
       }
     });
+    this.pos.addEqual(changeInPosition.clampMagnitude(1).scaleEqual(0.5 * delta));
   }
 }
 
