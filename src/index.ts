@@ -23,7 +23,7 @@ class Scenery extends Actor {
   }
 
   public update(_engine: Engine, delta: number): void {
-    this.sceneryScale += delta * 0.0001 * this.sceneryScale;
+    this.sceneryScale += delta * 0.0002 * this.sceneryScale;
     this.scale = new Vector(this.sceneryScale, this.sceneryScale);
   }
 }
@@ -86,7 +86,7 @@ class SpaceShip extends Actor {
 const spaceship = new SpaceShip();
 const scenery = new Scenery();
 
-let position = vec(-(100 * Math.SQRT2) / 2, 0);
+let position = vec(-(100 * Math.SQRT2) / 2 - 7.3, -8);
 let direction = vec(100, 0).rotate(TAU / 8);
 for (let i = 0; i < 100; i++) {
   const end = position.add(direction);
