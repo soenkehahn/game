@@ -1,6 +1,15 @@
-import { Actor, CollisionType, Color, CoordPlane, Engine, Input, Physics, PhysicsStats, Vector } from "excalibur";
+import {
+  Actor,
+  CollisionType,
+  Color,
+  Engine,
+  Input,
+  vec,
+  Vector,
+} from "excalibur";
 import { Keys } from "excalibur/build/dist/Input/Keyboard";
 
+const TAU = Math.PI * 2;
 
 const game = new Engine({
   width: 800,
@@ -10,7 +19,7 @@ const game = new Engine({
 class Scenery extends Actor {
   sceneryScale: number = 1;
   constructor() {
-    super({ x: game.drawWidth / 2, y: game.drawHeight / 2 })
+    super({ x: game.drawWidth / 2, y: game.drawHeight / 2 });
   }
 
   public update(_engine: Engine, delta: number): void {
@@ -20,14 +29,22 @@ class Scenery extends Actor {
 }
 
 class Wall extends Actor {
-  constructor({ x, y, rotation, length, thiccness }: { x: number; y: number; rotation: number; length: number; thiccness: number }) {
+  constructor({
+    start,
+    end,
+    thiccness,
+  }: {
+    start: Vector;
+    end: Vector;
+    thiccness: number;
+  }) {
     super({
-      x: x,
-      y: y,
-      width: length,
-      height: thiccness,
+      x: (start.x + end.x) / 2,
+      y: (start.y + end.y) / 2,
+      width: start.distance(end),
+      height: Math.max(1, thiccness),
       color: Color.fromRGB(255, 120, 180),
-      rotation
+      rotation: end.sub(start).toAngle(),
     });
     this.body.collisionType = CollisionType.Fixed;
   }
@@ -37,11 +54,11 @@ class SpaceShip extends Actor {
   constructor() {
     super({
       x: game.drawWidth / 2,
-      y: game.drawHeight / 2,
+      y: game.drawHeight / 2 + 200,
       width: 20,
       height: 20,
       color: Color.Cyan,
-      rotation: Math.PI / 4,
+      rotation: TAU / 8,
     });
     this.body.collisionType = CollisionType.Active;
   }
@@ -57,34 +74,35 @@ class SpaceShip extends Actor {
     const changeInPosition = new Vector(0, 0);
     this.movements.forEach(([keys, vector]) => {
       if (keys.some((key: Keys) => game.input.keyboard.isHeld(key))) {
-        changeInPosition.addEqual(vector)
+        changeInPosition.addEqual(vector);
       }
     });
-    this.pos.addEqual(changeInPosition.clampMagnitude(1).scaleEqual(0.5 * delta));
-  }
-}
-
-const TAU = Math.PI * 2
-
-class SpiralPiece extends Actor {
-  constructor(length: number) {
-    super()
-    const thiccness = 10
-    const south = new Wall({ x: 0, y: 0, rotation: 0, length, thiccness })
-    const east = new Wall({ x: length / 2 - thiccness / 2, y: -length / 2, rotation: TAU / 4, length, thiccness })
-    const north = new Wall({ x: 0, y: -length, rotation: 0, length, thiccness })
-    this.addChild(south)
-    this.addChild(east)
-    this.addChild(north)
+    this.pos.addEqual(
+      changeInPosition.clampMagnitude(1).scaleEqual(0.5 * delta)
+    );
   }
 }
 
 const spaceship = new SpaceShip();
 const scenery = new Scenery();
-const spiral = new SpiralPiece(150);
-scenery.addChild(spiral);
+
+let position = vec(-(100 * Math.SQRT2) / 2, 0);
+let direction = vec(100, 0).rotate(TAU / 8);
+for (let i = 0; i < 100; i++) {
+  const end = position.add(direction);
+  const wall = new Wall({
+    start: position,
+    end,
+    thiccness: direction.distance(Vector.Zero) / 10,
+  });
+  scenery.addChild(wall);
+  position = end;
+  direction = direction.rotate(-TAU / 4).scale(0.8);
+}
+
 for (const x of [scenery, spaceship]) {
   game.add(x);
 }
+
 game.backgroundColor = Color.Black;
 game.start();
